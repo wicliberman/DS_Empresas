@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science para Empresas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
+
+        .university-logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header h2 {
+            font-size: 1.3em;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            border: 1px solid #e8ecf0;
+        }
+
+        .accordion {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .accordion-header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            padding: 18px 25px;
+            cursor: pointer;
+            border-radius: 10px;
+            margin-bottom: 2px;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            font-size: 1.1em;
+        }
+
+        .accordion-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.3);
+        }
+
+        .accordion-header.active {
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        }
+
+        .accordion-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.2em;
+        }
+
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: #f8f9fa;
+            border-radius: 0 0 10px 10px;
+        }
+
+        .accordion-content.active {
+            max-height: 300px;
+        }
+
+        .accordion-inner {
+            padding: 25px;
+            border-left: 4px solid #74b9ff;
+        }
+
+        .url-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .url-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(253, 121, 168, 0.3);
+        }
+
+        .url-link.disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .control-button {
+            position: absolute;
+            top: 5px;
+            right: 45px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .control-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .control-button.enabled {
+            background: rgba(46, 204, 113, 0.9);
+            border-color: rgba(46, 204, 113, 1);
+        }
+
+        .control-button.disabled {
+            background: rgba(231, 76, 60, 0.9);
+            border-color: rgba(231, 76, 60, 1);
+        }
+
+        .disabled-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            z-index: 5;
+            display: none;
+        }
+
+        .accordion.section-disabled .disabled-overlay {
+            display: block;
+        }
+
+        .accordion.section-disabled .accordion-header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            cursor: pointer;
+        }
+
+        .accordion.section-disabled .url-link {
+            background: #95a5a6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .bibliography-section {
+            margin-top: 40px;
+        }
+
+        .bibliography-title {
+            color: #2d3436;
+            font-size: 1.8em;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 300;
+        }
+
+        .bibliography-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .bibliography-item {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .bibliography-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(108, 92, 231, 0.3);
+        }
+
+        .bibliography-item h3 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .bibliography-item p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content-section {
+                padding: 20px;
+            }
+            
+            .bibliography-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .control-button {
+                right: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="university-logo">
+                <img src="https://static.wixstatic.com/media/989f95_b718a60c1e2b4c32a9211e2d13769354~mv2.png/v1/fill/w_479,h_267,al_c,q_85,usm_4.00_1.00_0.00,enc_avif,quality_auto/Image-empty-state.png" alt="Logo Universidad" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
+            </div>
+            <h1>Data Science para Empresas</h1>
+            <h2>Profesor: Sammy Liberman, PhD</h2>
+        </div>
+
+        <div class="content-section">
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Programa</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p>Contenido del programa del curso, objetivos de aprendizaje, metodología, evaluaciones, etc.</p>
+                        <a href="https://heyzine.com/flip-book/4795726194.html" class="url-link">Acceder al Programa</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Trabajo</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p>Instrucciones, rubrica y recursos para el desarrollo del trabajo final del curso.</p>
+                        <a href="https://heyzine.com/flip-book/cc4ea2705d.html" class="url-link">Acceder al Trabajo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion" id="caso1-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Caso 1</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p>Primer caso de estudio de DS e IA aplicado a empresas.</p>
+                        <a href="https://forms.gle/qDJK47wPebt71WJN8" class="url-link">Acceder al Caso 1</a>
+                    </div>
+                </div>
+                <button class="control-button disabled" onclick="toggleSection('caso1')" title="Habilitar/Deshabilitar Caso 1">🔒</button>
+                <div class="disabled-overlay"></div>
+            </div>
+
+            <div class="accordion" id="caso2-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Caso 2</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p>Segundo caso de estudio de DS e IA aplicado a empresas.</p>
+                        <a href="https://forms.gle/2NocCsvtEqfXf3Wo6" class="url-link">Acceder al Caso 2</a>
+                    </div>
+                </div>
+                <button class="control-button disabled" onclick="toggleSection('caso2')" title="Habilitar/Deshabilitar Caso 2">🔒</button>
+                <div class="disabled-overlay"></div>
+            </div>
+
+            <div class="accordion" id="tarea-section">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Tarea de aplicación</span>
+                    <span class="accordion-icon">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-inner">
+                        <p>Tarea: Predicción de Conversión de Leads - Machine Learning con Python </p>
+                        <a href="https://wicliberman.github.io/Data_Science/" class="url-link">Acceder a la Tarea</a>
+                    </div>
+                </div>
+                <button class="control-button disabled" onclick="toggleSection('tarea')" title="Habilitar/Deshabilitar Tarea">🔒</button>
+                <div class="disabled-overlay"></div>
+            </div>
+        </div>
+
+        <div class="content-section bibliography-section">
+            <h2 class="bibliography-title">Bibliografía del Curso</h2>
+            <div class="bibliography-grid">
+               <div class="bibliography-item">
+    <h3>Bibliografía 1</h3>
+    <p>"Marketing Metrics and Frameworks", Sammy Liberman, Ediciones Universidad Finis Terrae (2020), Santiago (Chile).</p>
+    <a href="https://heyzine.com/flip-book/d56b185b06.html" class="url-link" style="margin-top: 15px; display: inline-block;">Acceder al Texto</a>
+</div>
+                <div class="bibliography-item">
+    <h3>Bibliografía 2</h3>
+    <p>"Inteligencia Artificial aplicada al Marketing, Casos Aplicados", Sammy Liberman, Ediciones Digitales (2022), Middletown, USA.</p>
+    <a href="https://heyzine.com/flip-book/8d6f06ec43.html" class="url-link" style="margin-top: 15px; display: inline-block;">Acceder al Texto</a>
+</div>
+                <div class="bibliography-item">
+    <h3>Bibliografía 3</h3>
+    <p>"Machine Learning aplicado a los negocios, ciencia y tecnología", Sammy Liberman, Ediciones Digitales (2020), Columbia, USA.</p>
+    <a href="https://heyzine.com/flip-book/b7facb1371.html" class="url-link" style="margin-top: 15px; display: inline-block;">Acceder al Texto</a>
+</div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado de las secciones (guardado permanentemente en el navegador)
+        let sectionStates = {
+            caso1: false,   // Caso 1 deshabilitado por defecto
+            caso2: false,   // Caso 2 deshabilitado por defecto
+            tarea: false    // Tarea deshabilitada por defecto
+        };
+
+        // Cargar estados guardados
+        function loadSavedStates() {
+            const savedStates = JSON.parse(localStorage.getItem('courseSectionStates') || '{}');
+            sectionStates = { ...sectionStates, ...savedStates };
+        }
+
+        // Guardar estados
+        function saveStates() {
+            localStorage.setItem('courseSectionStates', JSON.stringify(sectionStates));
+        }
+
+        function toggleAccordion(element) {
+            // Verificar si la sección está deshabilitada
+            const accordion = element.closest('.accordion');
+            if (accordion.classList.contains('section-disabled')) {
+                return; // No permitir abrir si está deshabilitada
+            }
+
+            const content = element.nextElementSibling;
+            const icon = element.querySelector('.accordion-icon');
+            
+            // Close all other accordions
+            document.querySelectorAll('.accordion-content').forEach(item => {
+                if (item !== content) {
+                    item.classList.remove('active');
+                    item.previousElementSibling.classList.remove('active');
+                }
+            });
+            
+            // Toggle current accordion
+            content.classList.toggle('active');
+            element.classList.toggle('active');
+        }
+
+        function toggleSection(sectionName) {
+            // Solicitar contraseña del profesor
+            const password = prompt('Ingrese la contraseña del profesor para cambiar el estado de esta sección:');
+            
+            // Contraseña del profesor (puedes cambiarla aquí)
+            const professorPassword = '1720';
+            
+            if (password !== professorPassword) {
+                alert('Contraseña incorrecta. Solo el profesor puede modificar el acceso a las secciones.');
+                return;
+            }
+            
+            const section = document.getElementById(sectionName + '-section');
+            const button = section.querySelector('.control-button');
+            
+            // Cambiar el estado (abrir/cerrar)
+            sectionStates[sectionName] = !sectionStates[sectionName];
+            saveStates(); // Guardar el cambio permanentemente
+            
+            if (sectionStates[sectionName]) {
+                // Habilitar sección
+                section.classList.remove('section-disabled');
+                button.classList.remove('disabled');
+                button.classList.add('enabled');
+                button.innerHTML = '✓';
+                button.title = 'Clic para cerrar esta sección';
+                
+                alert('¡Sección HABILITADA! Todos los estudiantes pueden acceder a: ' + getSectionTitle(sectionName));
+            } else {
+                // Deshabilitar sección
+                section.classList.add('section-disabled');
+                button.classList.remove('enabled');
+                button.classList.add('disabled');
+                button.innerHTML = '🔒';
+                button.title = 'Clic para abrir esta sección';
+                
+                // Cerrar accordion si está abierto
+                const content = section.querySelector('.accordion-content');
+                const header = section.querySelector('.accordion-header');
+                content.classList.remove('active');
+                header.classList.remove('active');
+                
+                alert('¡Sección CERRADA! Los estudiantes ya no pueden acceder a: ' + getSectionTitle(sectionName));
+            }
+        }
+
+        function getSectionTitle(sectionName) {
+            const titles = {
+                caso1: 'Caso 1',
+                caso2: 'Caso 2',
+                tarea: 'Tarea de aplicación'
+            };
+            return titles[sectionName] || sectionName;
+        }
+
+        // Inicializar el estado de las secciones al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar estados guardados
+            loadSavedStates();
+            
+            Object.keys(sectionStates).forEach(sectionName => {
+                const section = document.getElementById(sectionName + '-section');
+                const button = section.querySelector('.control-button');
+                
+                if (sectionStates[sectionName]) {
+                    // Sección habilitada - check simple
+                    button.classList.add('enabled');
+                    button.classList.remove('disabled');
+                    button.innerHTML = '✓';
+                    button.title = 'Clic para cerrar esta sección';
+                } else {
+                    // Sección deshabilitada - candado rojo cerrado
+                    section.classList.add('section-disabled');
+                    button.classList.add('disabled');
+                    button.classList.remove('enabled');
+                    button.innerHTML = '🔒';
+                    button.title = 'Clic para abrir esta sección';
+                }
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
