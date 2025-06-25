@@ -444,7 +444,6 @@
         <div class="header">
             <h1>Data Science para Empresas</h1>
             <h2>Profesor: Sammy Liberman, PhD</h2>
-            <button onclick="copyCurrentURL()" style="position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px;">📋 Copiar URL</button>
         </div>
 
         <div class="content-section">
@@ -651,7 +650,7 @@
 
         // Función para verificar contraseña usando hash
         async function verifyPassword(inputPassword) {
-            // Hash SHA-256 de la contraseña "1720"
+            // Hash SHA-256 de la contraseña del profesor
             const correctPasswordHash = "8d23cf6c86e834a7aa6eded54c26ce2bb2e74903538c61bdd5d2197997ab2f72";
             
             // Crear hash del input del usuario
@@ -662,17 +661,6 @@
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             
             return hashHex === correctPasswordHash;
-        }
-
-        // Función para copiar URL actual
-        function copyCurrentURL() {
-            const currentURL = window.location.href;
-            navigator.clipboard.writeText(currentURL).then(function() {
-                alert('¡URL copiada! Comparte esta URL con los estudiantes para que vean los estados actuales.');
-            }, function() {
-                // Fallback para navegadores que no soportan clipboard
-                prompt('Copia esta URL:', currentURL);
-            });
         }
 
         function getSectionTitle(sectionName) {
