@@ -542,56 +542,61 @@
     </div>
 
     <script>
-        // Estado de las secciones (guardado permanentemente en el navegador)
+        // Contraseña del profesor (simple y funcional)
+        const PROFESSOR_PASSWORD = "1720";
+
+        // Estado de las secciones
         let sectionStates = {
-            caso1: false,   // Caso 1 deshabilitado por defecto
-            caso2: false,   // Caso 2 deshabilitado por defecto
-            tarea: false    // Tarea deshabilitada por defecto
+            caso1: false,
+            caso2: false,
+            tarea: false
         };
 
         // Cargar estados desde URL y localStorage
-        function loadSavedStates() {
-            // Primero cargar desde localStorage
-            const localStates = JSON.parse(localStorage.getItem('courseSectionStates') || '{}');
-            sectionStates = { ...sectionStates, ...localStates };
+        function loadStates() {
+            // Primero desde localStorage
+            const saved = localStorage.getItem('courseSectionStates');
+            if (saved) {
+                try {
+                    sectionStates = { ...sectionStates, ...JSON.parse(saved) };
+                } catch (e) {
+                    console.log('Error cargando localStorage');
+                }
+            }
             
-            // Luego verificar si hay parámetros en la URL (estos tienen prioridad)
+            // Luego desde URL
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('estados')) {
                 try {
                     const urlStates = JSON.parse(atob(urlParams.get('estados')));
                     sectionStates = { ...sectionStates, ...urlStates };
-                    // Guardar en localStorage para persistencia local
                     localStorage.setItem('courseSectionStates', JSON.stringify(sectionStates));
                 } catch (e) {
-                    console.log('Error cargando estados desde URL');
+                    console.log('Error cargando URL');
                 }
             }
         }
 
-        // Guardar estados y generar URL compartible
+        // Guardar estados
         function saveStates() {
             localStorage.setItem('courseSectionStates', JSON.stringify(sectionStates));
             
-            // Generar URL compartible
-            const encodedStates = btoa(JSON.stringify(sectionStates));
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?estados=' + encodedStates;
-            
-            // Actualizar URL sin recargar la página
+            // Actualizar URL
+            const encoded = btoa(JSON.stringify(sectionStates));
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?estados=' + encoded;
             window.history.replaceState({}, '', newUrl);
         }
 
+        // Toggle accordion
         function toggleAccordion(element) {
-            // Verificar si la sección está deshabilitada
             const accordion = element.closest('.accordion');
             if (accordion.classList.contains('section-disabled')) {
-                return; // No permitir abrir si está deshabilitada
+                return;
             }
 
             const content = element.nextElementSibling;
-            const icon = element.querySelector('.accordion-icon');
             
-            // Close all other accordions
+            // Cerrar otros
             document.querySelectorAll('.accordion-content').forEach(item => {
                 if (item !== content) {
                     item.classList.remove('active');
@@ -599,121 +604,66 @@
                 }
             });
             
-            // Toggle current accordion
+            // Toggle actual
             content.classList.toggle('active');
             element.classList.toggle('active');
         }
 
+        // Toggle section (con contraseña)
         function toggleSection(sectionName) {
-            // Solicitar contraseña del profesor
-            const password = prompt('Ingrese la contraseña del profesor para cambiar el estado de esta sección:');
+            const password = prompt('Ingrese la contraseña del profesor:');
             
-            // Verificar contraseña con hash SHA-256
-            verifyPassword(password).then(isValid => {
-                if (!isValid) {
-                    alert('Contraseña incorrecta. Solo el profesor puede modificar el acceso a las secciones.');
-                    return;
-                }
-                
-                const section = document.getElementById(sectionName + '-section');
-                const button = section.querySelector('.control-button');
-                
-                // Cambiar el estado (abrir/cerrar)
-                sectionStates[sectionName] = !sectionStates[sectionName];
-                saveStates(); // Guardar el cambio permanentemente
-                
-                if (sectionStates[sectionName]) {
-                    // Habilitar sección
-                    section.classList.remove('section-disabled');
-                    button.classList.remove('disabled');
-                    button.classList.add('enabled');
-                    button.innerHTML = '✓';
-                    button.title = 'Clic para cerrar esta sección';
-                    
-                    alert('¡Sección HABILITADA! Todos los estudiantes pueden acceder a: ' + getSectionTitle(sectionName) + '\n\nURL actualizada automáticamente. Los estudiantes verán los cambios al recargar la página.');
-                } else {
-                    // Deshabilitar sección
-                    section.classList.add('section-disabled');
-                    button.classList.remove('enabled');
-                    button.classList.add('disabled');
-                    button.innerHTML = '🔒';
-                    button.title = 'Clic para abrir esta sección';
-                    
-                    // Cerrar accordion si está abierto
-                    const content = section.querySelector('.accordion-content');
-                    const header = section.querySelector('.accordion-header');
-                    content.classList.remove('active');
-                    header.classList.remove('active');
-                    
-                    alert('¡Sección CERRADA! Los estudiantes ya no pueden acceder a: ' + getSectionTitle(sectionName) + '\n\nURL actualizada automáticamente. Los estudiantes verán los cambios al recargar la página.');
-                }
-            });
+            if (password !== PROFESSOR_PASSWORD) {
+                alert('Contraseña incorrecta.');
+                return;
+            }
+            
+            // Cambiar estado
+            sectionStates[sectionName] = !sectionStates[sectionName];
+            saveStates();
+            updateSectionUI(sectionName);
+            
+            const status = sectionStates[sectionName] ? 'HABILITADA' : 'CERRADA';
+            alert(`¡Sección ${status}! URL actualizada automáticamente.`);
         }
 
-        // Función para verificar contraseña usando hash
-        async function verifyPassword(inputPassword) {
-            // Hash SHA-256 de la contraseña del profesor
-            const correctPasswordHash = "8d23cf6c86e834a7aa6eded54c26ce2bb2e74903538c61bdd5d2197997ab2f72";
+        // Actualizar UI de la sección
+        function updateSectionUI(sectionName) {
+            const section = document.getElementById(sectionName + '-section');
+            const button = section.querySelector('.control-button');
             
-            // Crear hash del input del usuario
-            const encoder = new TextEncoder();
-            const data = encoder.encode(inputPassword);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            
-            return hashHex === correctPasswordHash;
+            if (sectionStates[sectionName]) {
+                section.classList.remove('section-disabled');
+                button.classList.remove('disabled');
+                button.classList.add('enabled');
+                button.innerHTML = '✓';
+                button.title = 'Clic para cerrar esta sección';
+            } else {
+                section.classList.add('section-disabled');
+                button.classList.remove('enabled');
+                button.classList.add('disabled');
+                button.innerHTML = '🔒';
+                button.title = 'Clic para abrir esta sección';
+                
+                // Cerrar si está abierto
+                const content = section.querySelector('.accordion-content');
+                const header = section.querySelector('.accordion-header');
+                content.classList.remove('active');
+                header.classList.remove('active');
+            }
         }
 
-        function getSectionTitle(sectionName) {
-            const titles = {
-                caso1: 'Caso 1',
-                caso2: 'Caso 2',
-                tarea: 'Tarea de aplicación'
-            };
-            return titles[sectionName] || sectionName;
-        }
-
-        // Inicializar el estado de las secciones al cargar la página
+        // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
-            // Cargar estados guardados
-            loadSavedStates();
+            loadStates();
             
+            // Actualizar UI de todas las secciones
             Object.keys(sectionStates).forEach(sectionName => {
-                const section = document.getElementById(sectionName + '-section');
-                const button = section.querySelector('.control-button');
-                
-                if (sectionStates[sectionName]) {
-                    // Sección habilitada - check simple
-                    button.classList.add('enabled');
-                    button.classList.remove('disabled');
-                    button.innerHTML = '✓';
-                    button.title = 'Clic para cerrar esta sección';
-                } else {
-                    // Sección deshabilitada - candado rojo cerrado
-                    section.classList.add('section-disabled');
-                    button.classList.add('disabled');
-                    button.classList.remove('enabled');
-                    button.innerHTML = '🔒';
-                    button.title = 'Clic para abrir esta sección';
-                }
+                updateSectionUI(sectionName);
             });
         });
 
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            });
-        });
-
-        // Prevenir zoom accidental en móviles
+        // Prevenir zoom en móviles
         document.addEventListener('touchstart', function(event) {
             if (event.touches.length > 1) {
                 event.preventDefault();
