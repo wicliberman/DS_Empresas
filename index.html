@@ -39,25 +39,10 @@
             overflow: hidden;
         }
 
-        .university-logo {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            width: 60px;
-            height: 60px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
         .header h1 {
             font-size: 2em;
             margin-bottom: 8px;
             font-weight: 300;
-            margin-top: 20px;
         }
 
         .header h2 {
@@ -308,16 +293,8 @@
                 margin-bottom: 15px;
             }
 
-            .university-logo {
-                width: 50px;
-                height: 50px;
-                top: 10px;
-                left: 10px;
-            }
-            
             .header h1 {
                 font-size: 1.6em;
-                margin-top: 15px;
             }
 
             .header h2 {
@@ -465,11 +442,9 @@
 <body>
     <div class="container">
         <div class="header">
-            <div class="university-logo">
-                <img src="https://static.wixstatic.com/media/989f95_b718a60c1e2b4c32a9211e2d13769354~mv2.png/v1/fill/w_479,h_267,al_c,q_85,usm_4.00_1.00_0.00,enc_avif,quality_auto/Image-empty-state.png" alt="Logo Universidad" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">
-            </div>
             <h1>Data Science para Empresas</h1>
             <h2>Profesor: Sammy Liberman, PhD</h2>
+            <button onclick="copyCurrentURL()" style="position: absolute; bottom: 10px; right: 10px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px;">📋 Copiar URL</button>
         </div>
 
         <div class="content-section">
@@ -687,6 +662,17 @@
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
             
             return hashHex === correctPasswordHash;
+        }
+
+        // Función para copiar URL actual
+        function copyCurrentURL() {
+            const currentURL = window.location.href;
+            navigator.clipboard.writeText(currentURL).then(function() {
+                alert('¡URL copiada! Comparte esta URL con los estudiantes para que vean los estados actuales.');
+            }, function() {
+                // Fallback para navegadores que no soportan clipboard
+                prompt('Copia esta URL:', currentURL);
+            });
         }
 
         function getSectionTitle(sectionName) {
