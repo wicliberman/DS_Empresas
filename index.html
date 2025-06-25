@@ -51,6 +51,14 @@
             opacity: 0.9;
         }
 
+        .sync-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
         .content-section {
             background: white;
             border-radius: 15px;
@@ -282,6 +290,22 @@
             margin-top: 12px;
         }
 
+        .share-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .share-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         /* Media Queries para móviles */
         @media (max-width: 768px) {
             .container {
@@ -444,6 +468,12 @@
         <div class="header">
             <h1>Data Science para Empresas</h1>
             <h2>Profesor: Sammy Liberman, PhD</h2>
+            <div class="sync-info">
+                🔄 Para sincronizar cambios: copia la URL completa después de hacer cambios
+                <br>
+                <button class="share-button" onclick="copyFullURL()">📋 Copiar URL para compartir</button>
+                <button class="share-button" onclick="forceReload()">🔄 Recargar estados</button>
+            </div>
         </div>
 
         <div class="content-section">
@@ -542,49 +572,38 @@
     </div>
 
     <script>
-        // Contraseña del profesor (simple y funcional)
+        // Contraseña del profesor
         const PROFESSOR_PASSWORD = "1720";
 
-        // Estado de las secciones
+        // Estado de las secciones con timestamp para forzar actualización
         let sectionStates = {
             caso1: false,
             caso2: false,
-            tarea: false
+            tarea: false,
+            lastUpdate: Date.now()
         };
 
-        // Cargar estados desde URL y localStorage
+        // Cargar estados SOLO desde URL (fuerza sincronización)
         function loadStates() {
-            // Primero desde localStorage
-            const saved = localStorage.getItem('courseSectionStates');
-            if (saved) {
-                try {
-                    sectionStates = { ...sectionStates, ...JSON.parse(saved) };
-                } catch (e) {
-                    console.log('Error cargando localStorage');
-                }
-            }
-            
-            // Luego desde URL
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('estados')) {
+            if (urlParams.has('s')) {
                 try {
-                    const urlStates = JSON.parse(atob(urlParams.get('estados')));
+                    const urlStates = JSON.parse(atob(urlParams.get('s')));
                     sectionStates = { ...sectionStates, ...urlStates };
-                    localStorage.setItem('courseSectionStates', JSON.stringify(sectionStates));
+                    console.log('Estados cargados desde URL:', sectionStates);
                 } catch (e) {
-                    console.log('Error cargando URL');
+                    console.log('Error cargando desde URL:', e);
                 }
             }
         }
 
-        // Guardar estados
+        // Guardar estados SOLO en URL (sincronización real)
         function saveStates() {
-            localStorage.setItem('courseSectionStates', JSON.stringify(sectionStates));
-            
-            // Actualizar URL
+            sectionStates.lastUpdate = Date.now();
             const encoded = btoa(JSON.stringify(sectionStates));
-            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?estados=' + encoded;
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?s=' + encoded;
             window.history.replaceState({}, '', newUrl);
+            console.log('Estados guardados en URL:', newUrl);
         }
 
         // Toggle accordion
@@ -614,7 +633,7 @@
             const password = prompt('Ingrese la contraseña del profesor:');
             
             if (password !== PROFESSOR_PASSWORD) {
-                alert('Contraseña incorrecta.');
+                alert('❌ Contraseña incorrecta.');
                 return;
             }
             
@@ -623,8 +642,8 @@
             saveStates();
             updateSectionUI(sectionName);
             
-            const status = sectionStates[sectionName] ? 'HABILITADA' : 'CERRADA';
-            alert(`¡Sección ${status}! URL actualizada automáticamente.`);
+            const status = sectionStates[sectionName] ? 'HABILITADA ✅' : 'CERRADA ❌';
+            alert(`Sección ${status}!\n\n🔄 Para sincronizar con otros dispositivos:\n1. Copia la URL actual\n2. Ábrela en el otro dispositivo`);
         }
 
         // Actualizar UI de la sección
@@ -636,14 +655,14 @@
                 section.classList.remove('section-disabled');
                 button.classList.remove('disabled');
                 button.classList.add('enabled');
-                button.innerHTML = '✓';
-                button.title = 'Clic para cerrar esta sección';
+                button.innerHTML = '✅';
+                button.title = 'Sección habilitada - Clic para cerrar';
             } else {
                 section.classList.add('section-disabled');
                 button.classList.remove('enabled');
                 button.classList.add('disabled');
                 button.innerHTML = '🔒';
-                button.title = 'Clic para abrir esta sección';
+                button.title = 'Sección cerrada - Clic para abrir';
                 
                 // Cerrar si está abierto
                 const content = section.querySelector('.accordion-content');
@@ -653,14 +672,33 @@
             }
         }
 
+        // Copiar URL completa para compartir
+        function copyFullURL() {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('📋 URL copiada!\n\nComparte esta URL con estudiantes para que vean los estados actuales.');
+            }).catch(() => {
+                prompt('Copia esta URL:', url);
+            });
+        }
+
+        // Forzar recarga de estados
+        function forceReload() {
+            window.location.reload();
+        }
+
         // Inicializar
         document.addEventListener('DOMContentLoaded', function() {
             loadStates();
             
             // Actualizar UI de todas las secciones
             Object.keys(sectionStates).forEach(sectionName => {
-                updateSectionUI(sectionName);
+                if (sectionName !== 'lastUpdate') {
+                    updateSectionUI(sectionName);
+                }
             });
+
+            console.log('Plataforma iniciada. Estados:', sectionStates);
         });
 
         // Prevenir zoom en móviles
